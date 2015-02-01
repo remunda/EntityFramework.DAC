@@ -66,4 +66,7 @@
   <ItemGroup>
     <RefactorLog Include="SampleProject.DB.refactorlog" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SampleProject.DB.publish.xml" />
+  </ItemGroup>
 </Project>

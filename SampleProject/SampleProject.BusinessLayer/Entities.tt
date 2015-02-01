@@ -15,8 +15,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
+using System.Data.Entity.ModelConfiguration.Conventions;
 
-namespace SampleProject.Model 
+namespace SampleProject.Entities
 {
 
 	public interface IEntity 
@@ -32,6 +34,15 @@ namespace SampleProject.Model
 
     public class <#=contextName #> : DbContext
     {
+        public <#=contextName #>()
+            : base("name=<#=contextName #>")
+        {
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();            
+        }
 
         <#
             foreach(EntityInfo entity in entityInfos)
@@ -42,6 +53,14 @@ namespace SampleProject.Model
 
     }
 
+
+    internal sealed class Configuration : DbMigrationsConfiguration<<#=contextName #>>
+    {
+        public Configuration()
+        {
+            AutomaticMigrationsEnabled = false;
+        }
+    }
 
 <#
 	foreach (EntityInfo entity in entityInfos)
