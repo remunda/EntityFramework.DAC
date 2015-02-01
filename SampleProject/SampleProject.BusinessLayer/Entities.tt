@@ -1,0 +1,73 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="System.Xml"#>
+<#@ assembly name="$(SolutionDir)EntityFramework.DAC\$(OutDir)EntityFramework.DAC.dll" #>
+<#@ import namespace="EntityFramework.DAC" #>
+<#@ import namespace="EntityFramework.DAC.Entities" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
+
+namespace SampleProject.Model 
+{
+
+	public interface IEntity 
+	{
+	}
+
+<#
+	string contextName = "SampleContext";
+	string solutionDir = new FileInfo(Host.TemplateFile).Directory.Parent.FullName;
+	solutionDir = Path.Combine(solutionDir, string.Format(@"{0}\bin\Debug\{0}.dacpac", @"SampleProject.DB"));    
+	List<EntityInfo> entityInfos = DacHelper.GetDacEntitiesInfo(solutionDir); 
+#>
+
+    public class <#=contextName #> : DbContext
+    {
+
+        <#
+            foreach(EntityInfo entity in entityInfos)
+            {#>
+                public DbSet<<#= entity.Name #>> <#= entity.GetPluralName() #> { get; set; }     
+            <#}
+        #>
+
+    }
+
+
+<#
+	foreach (EntityInfo entity in entityInfos)
+	{
+		#>
+			public partial class <#= entity.Name #> : IEntity
+			{ 
+			<#foreach (var col in entity.Properties)
+			  {#>
+				<#if(col.IsKey) WriteLine("[Key]"); #>
+				<#foreach (var item in col.ForeignKeys) 
+				  {
+					WriteLine("[ForeignKey(\"" + item.ReferenceName + "\")]");		 
+				  } 
+				 #>
+				public <#=col.ClrType#> <#=col.Name#> { get; set; }
+
+				<# foreach (var fk in col.ForeignKeys) { #>
+					public <#=fk.ReferencedTable#> <#=EntitiesHelper.GetForeignKeyNavigationName(fk.ReferenceName)#> { get; set; }
+
+				<# } #>
+			<#}#>
+			}
+
+<#  
+	}
+#>
+
+}
